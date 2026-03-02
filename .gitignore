@@ -1,0 +1,25 @@
+# Dependencias
+/node_modules
+
+# Builds
+/dist
+/out-tsc
+
+# Archivos de entorno / cache
+/.angular
+/.cache
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDEs / editores
+.idea
+.vscode
+*.swp
+*.swo
+
+# SO
+.DS_Store
+Thumbs.db

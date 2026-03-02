@@ -1,0 +1,51 @@
+<div class="container">
+  <h1>POST Demo (Mock)</h1>
+
+  <!-- Input para la URL del API -->
+  <div class="form">
+    <label>API Base URL (Mock)</label>
+    <input
+      type="text"
+      [(ngModel)]="apiBaseUrl"
+      placeholder="https://api.jsoning.com/mock/TOKEN/"
+    />
+  </div>
+
+  <hr />
+
+  <!-- Formulario del POST -->
+  <div class="form">
+    <label>ID</label>
+    <input type="text" [(ngModel)]="form.id" placeholder="ID del álbum..." />
+
+    <label>Nombre del Álbum</label>
+    <input type="text" [(ngModel)]="form.name" placeholder="Nombre del álbum..." />
+
+    <label>Artista</label>
+    <input type="text" [(ngModel)]="form.artist" placeholder="Nombre del artista..." />
+
+    <label>Año</label>
+    <input type="number" [(ngModel)]="form.year" placeholder="Año de lanzamiento..." />
+
+    <label>Tracks (separados por coma)</label>
+    <input 
+      type="text" 
+      [(ngModel)]="tracksInput" 
+      placeholder="Track 1, Track 2, Track 3..." 
+    />
+    <small>Ingresa los tracks separados por coma</small>
+
+    <button (click)="sendPost()" [disabled]="loading">
+      {{ loading ? 'Enviando...' : 'Enviar POST' }}
+    </button>
+    <p *ngIf="albumMessage" class="error">
+      {{ albumMessage }}
+    </p>
+
+  <hr />
+  
+  </div>
+
+
+
+</div>

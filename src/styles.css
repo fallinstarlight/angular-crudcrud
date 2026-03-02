@@ -1,0 +1,7 @@
+body { font-family: Arial, sans-serif; background: #f6f7fb; margin: 0; }
+.container { max-width: 700px; margin: 40px auto; background: #fff; padding: 20px; border-radius: 8px; }
+.form { display: grid; gap: 8px; margin-bottom: 12px; }
+input, textarea, button { padding: 8px; font-size: 14px; }
+button { cursor: pointer; }
+.error { color: #c00; }
+.card { background: #f0f4ff; padding: 12px; border-radius: 6px; }
