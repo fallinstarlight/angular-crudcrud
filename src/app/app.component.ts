@@ -2,16 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, ChangeDetectorRef, NgZone } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-
+/* Importar interfaces de Angular y las interfaces para los métodos HTTP */
 import {
-  AlbumGetRequest,
-  CRUDGetService,
-  CRUDPostsService,
+  AlbumGetRequest,/* Servicio Get */
+  CRUDGetService, 
+  CRUDPostsService, /* Servicio Post */
   CreateAlbumPostRequest,
   PostResponse
 } from './mock-posts.service';
-
-
 
 @Component({
   selector: 'app-root',
@@ -20,25 +18,23 @@ import {
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-
-
 export class AppComponent {
   /* La API expira cada día, por lo que se debe de cambiar el token al nuevo que se esté usando */
-  apiBaseUrl: string = 'https://api.jsoning.com/mock/TOKEN_DE_LA_API';
+  apiBaseUrl: string = 'https://crudcrud.com/api/TOKEN';
 
-  /**************************** Lógica y datos del GET ******************************/
+  /**************************** Variables de control de método ******************************/
+  selectedMethod: string = 'POST'; // GET, POST, PUT, DELETE
+  isLoadingForGet: boolean = false;
+
+  /****************************** Lógica y datos del GET ************************************/
   albumid: number = 1;
   album: AlbumGetRequest | null = null;
   errorMessage: string = '';
 
-
-  /**************************** Lógica y datos del POST ******************************/
-  /* Variables para los datos que se van a embiar */
+  /********************************** Lógica y datos del POST **********************************/
   albumMessage: string = '';
-  artistMessage: string = '';
-  genreMessage: string = '';
 
-  /* Cuerpo de la solicitud a enviar*/
+  /* Cuerpo de la solicitud a enviar en el post */
   form: CreateAlbumPostRequest = {
     id: '',
     name: '',
@@ -47,13 +43,11 @@ export class AppComponent {
     tracks: []
   };
 
-  /* Variable para almacenar los tracks en un arreglo, pues es la estructura que siguen en
-  el cuerpo de la API
-  */
+  /* Variable para almacenar los tracks en un arreglo */
   tracksInput: string = '';
-
   loading = false;
 
+  /********************************* Constructor de la clase ******************************* */
   constructor(
     private postsApi: CRUDPostsService,
     private getApi: CRUDGetService,
@@ -61,43 +55,121 @@ export class AppComponent {
     private zone: NgZone
   ) { }
 
-  /* MÉTODO GET ALBUM */
-  getAlbum(): void {
+  /* Método que se ejecuta cuando hay un cambio de método, es decir, cuando se cambia entre GET a POST, o a PUT o a DELETE 
+  * Todas las variables se vuelven a inicializar a 0
+  */
+  onMethodChange(): void {
+    this.albumMessage = '';
     this.errorMessage = '';
     this.album = null;
-    const id = Number(this.albumid);
+    this.loading = false;
+    this.isLoadingForGet = false;
+  }
 
+  /* Método que cambia el texto del botón dependiendo del método seleccionado */
+  getButtonText(): string {
+    if (this.loading) {
+      return 'Procesando...';
+    }
+    
+    switch(this.selectedMethod) {
+      case 'GET':
+        return 'Obtener Álbum';
+      case 'POST':
+        return 'Crear Álbum';
+      case 'PUT':
+        return 'Actualizar Álbum (No implementado)'; //PUT no implementado en esta versión
+      case 'DELETE':
+        return 'Eliminar Álbum (No implementado)'; //DELETE no implementado en esta versión
+      default:
+        return 'Ejecutar';
+    }
+  }
+
+  /* Función que se ejecuta al presionar el botón y envía la request seleccionada */
+  executeRequest(): void {
+    switch(this.selectedMethod) {
+      case 'GET':
+        this.getAlbum();
+        break;
+      case 'POST':
+        this.sendPost();
+        break;
+      case 'PUT':
+        // TODO: Implementar PUT
+        alert('PUT no implementado aún');
+        break;
+      case 'DELETE':
+        // TODO: Implementar DELETE
+        alert('DELETE no implementado aún');
+        break;
+    }
+  }
+
+  /* MÉTODO GET ALBUM */
+  getAlbum(): void {
+    /* Inicializar variables */
+    this.errorMessage = '';
+    this.album = null;
+    this.isLoadingForGet = true;
+    
+    /* Convertir la id a número por seguridad */
+    const id = Number(this.form.id);
+
+    /* Validar la id */
     if (!Number.isFinite(id) || id <= 0) {
       this.errorMessage = 'Ingresa un ID válido (>= 1).';
+      this.isLoadingForGet = false;
       return;
     }
 
+    this.loading = true;
+
+    /* Ejecutar petición get */
     this.getApi.createGet(this.apiBaseUrl, id).pipe().subscribe({
       next: (data) => {
         this.zone.run(() => {
-          this.album = data;
+          /* Se revisa si la respuesta de la API es un arreglo o no */
+          if(Array.isArray(data)){
+            /* En caso de ser un arreglo, se usa el primer elemento */
+            this.album = data[0];
+          }
+          else{
+            /* Si no es arreglo, se usa el raw data 
+            CRUD CRUD SIEMPRE DEVUELVE UN ARRAY, PERO DEJA ESTA LÓGICA AQUÍ PARA PODER SER REUSADA
+            */ 
+            this.album = data;
+          }
+          this.loading = false;
+          this.isLoadingForGet = false;
           this.cdr.detectChanges();
         });
       },
+      /* Cuando hay un error en la request */
       error: (err) => {
-        if (err?.name === 'TimeoutError') {
-          this.errorMessage = 'Timeout: la API tardó demasiado (10s).';
-          return;
-        }
-        if (err?.status === 404) {
-          this.errorMessage = 'No existe un juego con esa id (404).';
-        } else {
-          this.errorMessage = 'Error al llamar la API. Revisa tu conexión.';
-        }
-        this.cdr.detectChanges();
+        this.zone.run(() => {
+          this.loading = false;
+          this.isLoadingForGet = false;
+          
+          if (err?.name === 'TimeoutError') {
+            this.errorMessage = 'Timeout: la API tardó demasiado (10s).';
+          } else if (err?.status === 404) {
+            this.errorMessage = 'No existe un álbum con esa ID (404).';
+          } else {
+            this.errorMessage = 'Error al llamar la API. Revisa tu conexión.';
+          }
+          this.cdr.detectChanges();
+        });
       }
     });
   }
 
   /* MÉTODO SEND POST */
   sendPost(): void {
+    
     this.albumMessage = '';
 
+    /* Lee lo colocado en el campo de texto de "tracks", toma nombres de tracks separados por comas */
     if (this.tracksInput.trim()) {
       this.form.tracks = this.tracksInput
         .split(',')
@@ -107,6 +179,7 @@ export class AppComponent {
       this.form.tracks = [];
     }
 
+    /* Revisa que exista la URL, el nombre del artista y del álbum */
     if (!this.apiBaseUrl.trim()) {
       this.albumMessage = 'La URL del API es obligatoria.';
       return;
@@ -122,6 +195,7 @@ export class AppComponent {
 
     this.loading = true;
 
+    /* Creación de la Post request */
     this.postsApi.createPost(this.apiBaseUrl.trim(), this.form).subscribe({
       next: (res) => {
         this.zone.run(() => {

@@ -26,10 +26,9 @@ export interface PostResponse extends CreateAlbumPostRequest {
 @Injectable({ providedIn: 'root' })
 export class CRUDGetService {
   constructor(private http: HttpClient) {}
-  // POST: crea un post en {baseUrl}/posts
+  // POST: crea un get en {baseUrl}/posts
   createGet(baseUrl: string, id: number): Observable<AlbumGetRequest> {
-    // https://api.jsoning.com/mock/TOKEN/{resource}
-    const url = `${baseUrl}/albums?=${id}`;
+    const url = `${baseUrl}/albums?id=${id}`;
     return this.http.get<AlbumGetRequest>(url);
   }
 }

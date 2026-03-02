@@ -1,5 +1,5 @@
 <div class="container">
-  <h1>POST Demo (Mock)</h1>
+  <h1>API Demo (Mock)</h1>
 
   <!-- Input para la URL del API -->
   <div class="form">
@@ -7,45 +7,79 @@
     <input
       type="text"
       [(ngModel)]="apiBaseUrl"
-      placeholder="https://api.jsoning.com/mock/TOKEN/"
+      placeholder="https://crudcrud.com/api/df7106b176c64108b02975a3674e72d9"
     />
   </div>
 
   <hr />
 
-  <!-- Formulario del POST -->
+  <!-- Selector de método HTTP -->
+  <div class="form">
+    <label>Método HTTP</label>
+    <select [(ngModel)]="selectedMethod" (change)="onMethodChange()">
+      <option value="GET">GET</option>
+      <option value="POST">POST</option>
+      <option value="PUT" disabled>PUT (No implementado)</option>
+      <option value="DELETE" disabled>DELETE (No implementado)</option>
+    </select>
+  </div>
+
+  <hr />
+
+  <!-- Formulario para GET/POST -->
   <div class="form">
     <label>ID</label>
-    <input type="text" [(ngModel)]="form.id" placeholder="ID del álbum..." />
-
-    <label>Nombre del Álbum</label>
-    <input type="text" [(ngModel)]="form.name" placeholder="Nombre del álbum..." />
-
-    <label>Artista</label>
-    <input type="text" [(ngModel)]="form.artist" placeholder="Nombre del artista..." />
-
-    <label>Año</label>
-    <input type="number" [(ngModel)]="form.year" placeholder="Año de lanzamiento..." />
-
-    <label>Tracks (separados por coma)</label>
     <input 
       type="text" 
-      [(ngModel)]="tracksInput" 
-      placeholder="Track 1, Track 2, Track 3..." 
+      [(ngModel)]="form.id" 
+      placeholder="ID del álbum..." 
+      [readonly]="selectedMethod === 'GET' && isLoadingForGet"
     />
-    <small>Ingresa los tracks separados por coma</small>
 
-    <button (click)="sendPost()" [disabled]="loading">
-      {{ loading ? 'Enviando...' : 'Enviar POST' }}
+    <ng-container *ngIf="selectedMethod === 'POST'">
+      <label>Nombre del Álbum</label>
+      <input type="text" [(ngModel)]="form.name" placeholder="Nombre del álbum..." />
+
+      <label>Artista</label>
+      <input type="text" [(ngModel)]="form.artist" placeholder="Nombre del artista..." />
+
+      <label>Año</label>
+      <input type="number" [(ngModel)]="form.year" placeholder="Año de lanzamiento..." />
+
+      <label>Tracks (separados por coma)</label>
+      <input 
+        type="text" 
+        [(ngModel)]="tracksInput" 
+        placeholder="Track 1, Track 2, Track 3..." 
+      />
+      <small>Ingresa los tracks separados por coma</small>
+    </ng-container>
+
+    <button (click)="executeRequest()" [disabled]="loading">
+      {{ getButtonText() }}
     </button>
-    <p *ngIf="albumMessage" class="error">
+
+    <!-- Mensajes para POST -->
+    <p *ngIf="selectedMethod === 'POST' && albumMessage" [class.error]="albumMessage.includes('Error')" [class.success]="albumMessage.includes('✅')">
       {{ albumMessage }}
     </p>
 
-  <hr />
-  
+    <!-- Resultados para GET -->
+    <div *ngIf="selectedMethod === 'GET' && album" class="result-card">
+      <h3>Álbum encontrado:</h3>
+      <p><strong>ID:</strong> {{ album.id }}</p>
+      <p><strong>Nombre:</strong> {{ album.name }}</p>
+      <p><strong>Artista:</strong> {{ album.artist }}</p>
+      <p><strong>Año:</strong> {{ album.year }}</p>
+      <p><strong>Tracks:</strong></p>
+      <ul>
+        <li *ngFor="let track of album.tracks">{{ track }}</li>
+      </ul>
+    </div>
+
+    <!-- Mensaje de error para GET -->
+    <p *ngIf="selectedMethod === 'GET' && errorMessage" class="error">
+      {{ errorMessage }}
+    </p>
   </div>
-
-
-
 </div>

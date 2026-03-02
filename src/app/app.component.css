@@ -1,1 +1,42 @@
-.container{max-width:700px;margin:40px auto;background:#fff;padding:20px;border-radius:8px}
+.error {
+  color: #dc3545;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+.success {
+  color: #28a745;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+.result-card {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f8f9fa;
+}
+
+.result-card h3 {
+  margin-top: 0;
+  color: #007bff;
+}
+
+.result-card ul {
+  margin-bottom: 0;
+}
+
+.form select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+input[readonly] {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+}
