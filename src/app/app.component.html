@@ -20,22 +20,23 @@
       <option value="GET">GET</option>
       <option value="POST">POST</option>
       <option value="PUT" disabled>PUT (No implementado)</option>
-      <option value="DELETE" disabled>DELETE (No implementado)</option>
+      <option value="DELETE">DELETE</option>
     </select>
   </div>
 
   <hr />
 
-  <!-- Formulario para GET/POST -->
+  <!-- Formulario para GET / POST / DELETE -->
   <div class="form">
     <label>ID</label>
-    <input 
-      type="text" 
-      [(ngModel)]="form.id" 
-      placeholder="ID del álbum..." 
+    <input
+      type="text"
+      [(ngModel)]="form.id"
+      placeholder="ID del álbum..."
       [readonly]="selectedMethod === 'GET' && isLoadingForGet"
     />
 
+    <!-- Campos exclusivos del POST -->
     <ng-container *ngIf="selectedMethod === 'POST'">
       <label>Nombre del Álbum</label>
       <input type="text" [(ngModel)]="form.name" placeholder="Nombre del álbum..." />
@@ -47,21 +48,39 @@
       <input type="number" [(ngModel)]="form.year" placeholder="Año de lanzamiento..." />
 
       <label>Tracks (separados por coma)</label>
-      <input 
-        type="text" 
-        [(ngModel)]="tracksInput" 
-        placeholder="Track 1, Track 2, Track 3..." 
+      <input
+        type="text"
+        [(ngModel)]="tracksInput"
+        placeholder="Track 1, Track 2, Track 3..."
       />
       <small>Ingresa los tracks separados por coma</small>
+    </ng-container>
+
+    <!-- Aviso informativo para DELETE -->
+    <ng-container *ngIf="selectedMethod === 'DELETE'">
+      <small>Ingresa el <strong>_id</strong> del álbum que deseas eliminar (generado por CrudCrud al hacer POST).</small>
     </ng-container>
 
     <button (click)="executeRequest()" [disabled]="loading">
       {{ getButtonText() }}
     </button>
 
-    <!-- Mensajes para POST -->
-    <p *ngIf="selectedMethod === 'POST' && albumMessage" [class.error]="albumMessage.includes('Error')" [class.success]="albumMessage.includes('✅')">
+    <!-- Mensaje para POST -->
+    <p
+      *ngIf="selectedMethod === 'POST' && albumMessage"
+      [class.error]="albumMessage.includes('Error')"
+      [class.success]="albumMessage.includes('✅')"
+    >
       {{ albumMessage }}
+    </p>
+
+    <!-- Mensaje para DELETE -->
+    <p
+      *ngIf="selectedMethod === 'DELETE' && deleteMessage"
+      [class.error]="deleteMessage.includes('Error') || deleteMessage.includes('No existe') || deleteMessage.includes('Ingresa')"
+      [class.success]="deleteMessage.includes('✅')"
+    >
+      {{ deleteMessage }}
     </p>
 
     <!-- Resultados para GET -->

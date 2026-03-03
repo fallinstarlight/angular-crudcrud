@@ -2,11 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component, ChangeDetectorRef, NgZone } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
-/* Importar interfaces de Angular y las interfaces para los métodos HTTP */
 import {
-  AlbumGetRequest,/* Servicio Get */
-  CRUDGetService, 
-  CRUDPostsService, /* Servicio Post */
+  AlbumGetRequest,
+  CRUDGetService,
+  CRUDPostsService,
+  CRUDDeleteService,
   CreateAlbumPostRequest,
   PostResponse
 } from './mock-posts.service';
@@ -19,11 +19,10 @@ import {
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  /* La API expira cada día, por lo que se debe de cambiar el token al nuevo que se esté usando */
   apiBaseUrl: string = 'https://crudcrud.com/api/TOKEN';
 
   /**************************** Variables de control de método ******************************/
-  selectedMethod: string = 'POST'; // GET, POST, PUT, DELETE
+  selectedMethod: string = 'POST';
   isLoadingForGet: boolean = false;
 
   /****************************** Lógica y datos del GET ************************************/
@@ -34,7 +33,6 @@ export class AppComponent {
   /********************************** Lógica y datos del POST **********************************/
   albumMessage: string = '';
 
-  /* Cuerpo de la solicitud a enviar en el post */
   form: CreateAlbumPostRequest = {
     id: '',
     name: '',
@@ -43,52 +41,51 @@ export class AppComponent {
     tracks: []
   };
 
-  /* Variable para almacenar los tracks en un arreglo */
   tracksInput: string = '';
   loading = false;
+
+  /********************************** Lógica y datos del DELETE **********************************/
+  deleteMessage: string = '';
 
   /********************************* Constructor de la clase ******************************* */
   constructor(
     private postsApi: CRUDPostsService,
     private getApi: CRUDGetService,
+    private deleteApi: CRUDDeleteService,
     private cdr: ChangeDetectorRef,
     private zone: NgZone
   ) { }
 
-  /* Método que se ejecuta cuando hay un cambio de método, es decir, cuando se cambia entre GET a POST, o a PUT o a DELETE 
-  * Todas las variables se vuelven a inicializar a 0
-  */
   onMethodChange(): void {
     this.albumMessage = '';
     this.errorMessage = '';
+    this.deleteMessage = '';
     this.album = null;
     this.loading = false;
     this.isLoadingForGet = false;
   }
 
-  /* Método que cambia el texto del botón dependiendo del método seleccionado */
   getButtonText(): string {
     if (this.loading) {
       return 'Procesando...';
     }
-    
-    switch(this.selectedMethod) {
+
+    switch (this.selectedMethod) {
       case 'GET':
         return 'Obtener Álbum';
       case 'POST':
         return 'Crear Álbum';
       case 'PUT':
-        return 'Actualizar Álbum (No implementado)'; //PUT no implementado en esta versión
+        return 'Actualizar Álbum (No implementado)';
       case 'DELETE':
-        return 'Eliminar Álbum (No implementado)'; //DELETE no implementado en esta versión
+        return 'Eliminar Álbum';
       default:
         return 'Ejecutar';
     }
   }
 
-  /* Función que se ejecuta al presionar el botón y envía la request seleccionada */
   executeRequest(): void {
-    switch(this.selectedMethod) {
+    switch (this.selectedMethod) {
       case 'GET':
         this.getAlbum();
         break;
@@ -96,27 +93,22 @@ export class AppComponent {
         this.sendPost();
         break;
       case 'PUT':
-        // TODO: Implementar PUT
         alert('PUT no implementado aún');
         break;
       case 'DELETE':
-        // TODO: Implementar DELETE
-        alert('DELETE no implementado aún');
+        this.deleteAlbum();
         break;
     }
   }
 
   /* MÉTODO GET ALBUM */
   getAlbum(): void {
-    /* Inicializar variables */
     this.errorMessage = '';
     this.album = null;
     this.isLoadingForGet = true;
-    
-    /* Convertir la id a número por seguridad */
+
     const id = Number(this.form.id);
 
-    /* Validar la id */
     if (!Number.isFinite(id) || id <= 0) {
       this.errorMessage = 'Ingresa un ID válido (>= 1).';
       this.isLoadingForGet = false;
@@ -125,19 +117,12 @@ export class AppComponent {
 
     this.loading = true;
 
-    /* Ejecutar petición get */
     this.getApi.createGet(this.apiBaseUrl, id).pipe().subscribe({
       next: (data) => {
         this.zone.run(() => {
-          /* Se revisa si la respuesta de la API es un arreglo o no */
-          if(Array.isArray(data)){
-            /* En caso de ser un arreglo, se usa el primer elemento */
+          if (Array.isArray(data)) {
             this.album = data[0];
-          }
-          else{
-            /* Si no es arreglo, se usa el raw data 
-            CRUD CRUD SIEMPRE DEVUELVE UN ARRAY, PERO DEJA ESTA LÓGICA AQUÍ PARA PODER SER REUSADA
-            */ 
+          } else {
             this.album = data;
           }
           this.loading = false;
@@ -145,12 +130,11 @@ export class AppComponent {
           this.cdr.detectChanges();
         });
       },
-      /* Cuando hay un error en la request */
       error: (err) => {
         this.zone.run(() => {
           this.loading = false;
           this.isLoadingForGet = false;
-          
+
           if (err?.name === 'TimeoutError') {
             this.errorMessage = 'Timeout: la API tardó demasiado (10s).';
           } else if (err?.status === 404) {
@@ -166,10 +150,8 @@ export class AppComponent {
 
   /* MÉTODO SEND POST */
   sendPost(): void {
-    
     this.albumMessage = '';
 
-    /* Lee lo colocado en el campo de texto de "tracks", toma nombres de tracks separados por comas */
     if (this.tracksInput.trim()) {
       this.form.tracks = this.tracksInput
         .split(',')
@@ -179,7 +161,6 @@ export class AppComponent {
       this.form.tracks = [];
     }
 
-    /* Revisa que exista la URL, el nombre del artista y del álbum */
     if (!this.apiBaseUrl.trim()) {
       this.albumMessage = 'La URL del API es obligatoria.';
       return;
@@ -195,7 +176,6 @@ export class AppComponent {
 
     this.loading = true;
 
-    /* Creación de la Post request */
     this.postsApi.createPost(this.apiBaseUrl.trim(), this.form).subscribe({
       next: (res) => {
         this.zone.run(() => {
@@ -208,6 +188,43 @@ export class AppComponent {
         this.zone.run(() => {
           this.loading = false;
           this.albumMessage = 'Error al hacer POST. Revisa la URL o el token.';
+          console.error(err);
+          this.cdr.detectChanges();
+        });
+      }
+    });
+  }
+
+  /* MÉTODO DELETE ALBUM */
+  deleteAlbum(): void {
+    this.deleteMessage = '';
+
+    const id = this.form.id.trim();
+
+    if (!id) {
+      this.deleteMessage = 'Ingresa un ID válido para eliminar.';
+      return;
+    }
+
+    this.loading = true;
+
+    this.deleteApi.deleteAlbum(this.apiBaseUrl.trim(), id).subscribe({
+      next: () => {
+        this.zone.run(() => {
+          this.deleteMessage = '✅ Álbum eliminado correctamente';
+          this.loading = false;
+          this.form.id = '';
+          this.cdr.detectChanges();
+        });
+      },
+      error: (err) => {
+        this.zone.run(() => {
+          this.loading = false;
+          if (err?.status === 404) {
+            this.deleteMessage = 'No existe un álbum con esa ID (404).';
+          } else {
+            this.deleteMessage = 'Error al eliminar. Revisa la URL o el token.';
+          }
           console.error(err);
           this.cdr.detectChanges();
         });
