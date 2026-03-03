@@ -78,7 +78,7 @@ export class AppComponent {
       case 'POST':
         return 'Crear Álbum';
       case 'PUT':
-        return 'Actualizar Álbum (No implementado)'; //PUT no implementado en esta versión
+        return 'Actualizar Álbum'; //PUT no implementado en esta versión
       case 'DELETE':
         return 'Eliminar Álbum (No implementado)'; //DELETE no implementado en esta versión
       default:
@@ -97,7 +97,7 @@ export class AppComponent {
         break;
       case 'PUT':
         // TODO: Implementar PUT
-        alert('PUT no implementado aún');
+        this.updateAlbum();
         break;
       case 'DELETE':
         // TODO: Implementar DELETE
@@ -214,4 +214,73 @@ export class AppComponent {
       }
     });
   }
+
+
+  /* MÉTODO UPDATE (PUT) */
+  updateAlbum(): void {
+
+    this.albumMessage = '';
+
+    /* Convertir ID a número */
+    const id = Number(this.form.id);
+
+    if (!Number.isFinite(id) || id <= 0) {
+      this.albumMessage = 'Ingresa un ID válido para actualizar.';
+      return;
+    }
+
+    /* Procesar tracks */
+    if (this.tracksInput.trim()) {
+      this.form.tracks = this.tracksInput
+        .split(',')
+        .map(track => track.trim())
+        .filter(track => track.length > 0);
+    } else {
+      this.form.tracks = [];
+    }
+
+    /* Validaciones */
+    if (!this.apiBaseUrl.trim()) {
+      this.albumMessage = 'La URL del API es obligatoria.';
+      return;
+    }
+
+    if (!this.form.name.trim()) {
+      this.albumMessage = 'Nombre del álbum obligatorio.';
+      return;
+    }
+
+    if (!this.form.artist.trim()) {
+      this.albumMessage = 'Artista obligatorio.';
+      return;
+    }
+
+    this.loading = true;
+
+    /* Ejecutar PUT */
+    this.postsApi.updatePost(this.apiBaseUrl.trim(), id, this.form).subscribe({
+      next: (res) => {
+        this.zone.run(() => {
+          this.albumMessage = '✅ Álbum actualizado correctamente';
+          this.loading = false;
+          this.cdr.detectChanges();
+        });
+      },
+      error: (err) => {
+        this.zone.run(() => {
+          this.loading = false;
+
+          if (err?.status === 404) {
+            this.albumMessage = 'No existe un álbum con esa ID';
+          } else {
+            this.albumMessage = 'Error al hacer PUT. Revisa la URL o el token';
+          }
+
+          console.error(err);
+          this.cdr.detectChanges();
+        });
+      }
+    });
+  }
 }
+

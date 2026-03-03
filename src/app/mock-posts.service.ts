@@ -42,4 +42,17 @@ export class CRUDPostsService {
     const url = `${baseUrl}/albums`;
     return this.http.post<PostResponse>(url, payload);
   }
+
+  // PUT: actualiza un álbum usando query param id
+  updatePost(
+    baseUrl: string,
+    id: number,
+    payload: CreateAlbumPostRequest
+  ): Observable<any> {
+
+    const url = `${baseUrl}/albums?id=${id}`;
+    return this.http.put(url, payload);
+  }
 }
+
+

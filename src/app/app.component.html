@@ -19,7 +19,7 @@
     <select [(ngModel)]="selectedMethod" (change)="onMethodChange()">
       <option value="GET">GET</option>
       <option value="POST">POST</option>
-      <option value="PUT" disabled>PUT (No implementado)</option>
+      <option value="PUT" >PUT</option>
       <option value="DELETE" disabled>DELETE (No implementado)</option>
     </select>
   </div>
@@ -36,7 +36,7 @@
       [readonly]="selectedMethod === 'GET' && isLoadingForGet"
     />
 
-    <ng-container *ngIf="selectedMethod === 'POST'">
+    <ng-container *ngIf="selectedMethod === 'POST' || selectedMethod === 'PUT'">
       <label>Nombre del Álbum</label>
       <input type="text" [(ngModel)]="form.name" placeholder="Nombre del álbum..." />
 
@@ -60,7 +60,9 @@
     </button>
 
     <!-- Mensajes para POST -->
-    <p *ngIf="selectedMethod === 'POST' && albumMessage" [class.error]="albumMessage.includes('Error')" [class.success]="albumMessage.includes('✅')">
+    <p *ngIf="(selectedMethod === 'POST' || selectedMethod === 'PUT') && albumMessage"
+      [class.error]="albumMessage.includes('Error')"
+      [class.success]="albumMessage.includes('✅')">
       {{ albumMessage }}
     </p>
 
