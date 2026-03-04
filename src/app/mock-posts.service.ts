@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-export interface AlbumGetRequest{
+export interface AlbumGetRequest {
   id: string;
   name: string;
   artist: string;
@@ -18,7 +18,6 @@ export interface CreateAlbumPostRequest {
   tracks: string[];
 }
 
-// Respuesta del API (mismo payload + _id)
 export interface PostResponse extends CreateAlbumPostRequest {
   _id: string;
 }
@@ -26,7 +25,7 @@ export interface PostResponse extends CreateAlbumPostRequest {
 @Injectable({ providedIn: 'root' })
 export class CRUDGetService {
   constructor(private http: HttpClient) {}
-  // POST: crea un get en {baseUrl}/posts
+
   createGet(baseUrl: string, id: number): Observable<AlbumGetRequest> {
     const url = `${baseUrl}/albums?id=${id}`;
     return this.http.get<AlbumGetRequest>(url);
@@ -36,9 +35,8 @@ export class CRUDGetService {
 @Injectable({ providedIn: 'root' })
 export class CRUDPostsService {
   constructor(private http: HttpClient) {}
-  // POST: crea un post en {baseUrl}/posts
+
   createPost(baseUrl: string, payload: CreateAlbumPostRequest): Observable<PostResponse> {
-    // https://api.jsoning.com/mock/TOKEN/{resource}
     const url = `${baseUrl}/albums`;
     return this.http.post<PostResponse>(url, payload);
   }
@@ -55,4 +53,12 @@ export class CRUDPostsService {
   }
 }
 
+@Injectable({ providedIn: 'root' })
+export class CRUDDeleteService {
+  constructor(private http: HttpClient) {}
 
+  deleteAlbum(baseUrl: string, id: string): Observable<void> {
+    const url = `${baseUrl}/albums/${id}`;
+    return this.http.delete<void>(url);
+  }
+}
