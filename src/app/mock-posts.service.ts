@@ -57,7 +57,7 @@ export class CRUDPostsService {
 export class CRUDDeleteService {
   constructor(private http: HttpClient) {}
 
-  deleteAlbum(baseUrl: string, id: string): Observable<void> {
+  deleteAlbum(baseUrl: string, id: number): Observable<void> {
     const url = `${baseUrl}/albums/${id}`;
     return this.http.delete<void>(url);
   }

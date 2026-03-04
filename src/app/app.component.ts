@@ -56,6 +56,7 @@ export class AppComponent {
     private zone: NgZone
   ) { }
 
+  /* Método a ejecutar cuando se cambia entre los cuatro métodos, inicializa todas las variables */
   onMethodChange(): void {
     this.albumMessage = '';
     this.errorMessage = '';
@@ -65,6 +66,7 @@ export class AppComponent {
     this.isLoadingForGet = false;
   }
 
+  /* Cambia el texto del botón principal de acuerdo al método seleccionado */
   getButtonText(): string {
     if (this.loading) {
       return 'Procesando...';
@@ -84,6 +86,7 @@ export class AppComponent {
     }
   }
 
+  /* Se ejecuta al presionar el botón, llamará al método correspondiente según la selección */
   executeRequest(): void {
     switch (this.selectedMethod) {
       case 'GET':
@@ -103,12 +106,15 @@ export class AppComponent {
 
   /* MÉTODO GET ALBUM */
   getAlbum(): void {
+    /* Inicializa variables de mensaje y el objeto donde guardar los datos */
     this.errorMessage = '';
     this.album = null;
     this.isLoadingForGet = true;
 
+    /* COnvertir la id ingresada a número por seguridad */
     const id = Number(this.form.id);
 
+    /* Validación de la id ingresada */
     if (!Number.isFinite(id) || id <= 0) {
       this.errorMessage = 'Ingresa un ID válido (>= 1).';
       this.isLoadingForGet = false;
@@ -117,19 +123,23 @@ export class AppComponent {
 
     this.loading = true;
 
+    /* Crear solicitud get */
     this.getApi.createGet(this.apiBaseUrl, id).pipe().subscribe({
       next: (data) => {
         this.zone.run(() => {
+          /* Comprobar si los datos recibidos están en forma de arreglo para poder 
+          mostrarlos apropiadamente */
           if (Array.isArray(data)) {
-            this.album = data[0];
+            this.album = data[0]; //se toma el primer elemento del arreglo recibido
           } else {
-            this.album = data;
+            this.album = data; //crudcrud siempre envñia arreglos, pero se añade esto como buena práctica y para reusabilidad
           }
           this.loading = false;
           this.isLoadingForGet = false;
           this.cdr.detectChanges();
         });
       },
+      /* Si falla la solicitud */
       error: (err) => {
         this.zone.run(() => {
           this.loading = false;
@@ -150,8 +160,14 @@ export class AppComponent {
 
   /* MÉTODO SEND POST */
   sendPost(): void {
+    /* Vaciar el contenido del mensaje de información */
     this.albumMessage = '';
 
+    /* Separar las canciones en el campo "tracks" usando comas, esto permite darle la estructura
+    correcta a los datos ingresados => track1, track2 = {
+                                                          track1,
+                                                          track2
+                                                          } */
     if (this.tracksInput.trim()) {
       this.form.tracks = this.tracksInput
         .split(',')
@@ -161,6 +177,7 @@ export class AppComponent {
       this.form.tracks = [];
     }
 
+    /* Validar el resto de campos en la solicitud */
     if (!this.apiBaseUrl.trim()) {
       this.albumMessage = 'La URL del API es obligatoria.';
       return;
@@ -176,6 +193,7 @@ export class AppComponent {
 
     this.loading = true;
 
+    /* Crear solicitud Post */
     this.postsApi.createPost(this.apiBaseUrl.trim(), this.form).subscribe({
       next: (res) => {
         this.zone.run(() => {
@@ -204,12 +222,13 @@ export class AppComponent {
     /* Convertir ID a número */
     const id = Number(this.form.id);
 
+    /* Validar id */
     if (!Number.isFinite(id) || id <= 0) {
       this.albumMessage = 'Ingresa un ID válido para actualizar.';
       return;
     }
 
-    /* Procesar tracks */
+    /* Separar campo ingresado de tracks usando comas */
     if (this.tracksInput.trim()) {
       this.form.tracks = this.tracksInput
         .split(',')
@@ -219,7 +238,7 @@ export class AppComponent {
       this.form.tracks = [];
     }
 
-    /* Validaciones */
+    /* Validaciones de otros campos */
     if (!this.apiBaseUrl.trim()) {
       this.albumMessage = 'La URL del API es obligatoria.';
       return;
@@ -265,10 +284,13 @@ export class AppComponent {
 
    /* MÉTODO DELETE ALBUM */
   deleteAlbum(): void {
+    /* Limpiar mensaje */
     this.deleteMessage = '';
 
-    const id = this.form.id.trim();
+    /* Limpiar valor de id */
+    const id = Number(this.form.id);
 
+    /* Verificar que exista una id */
     if (!id) {
       this.deleteMessage = 'Ingresa un ID válido para eliminar.';
       return;
@@ -276,6 +298,7 @@ export class AppComponent {
 
     this.loading = true;
 
+    /* Intentar delete */
     this.deleteApi.deleteAlbum(this.apiBaseUrl.trim(), id).subscribe({
       next: () => {
         this.zone.run(() => {
